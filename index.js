@@ -65,7 +65,17 @@ function getFilesFromSearch(csvObject) {
     const files = fs.readdirSync(dirPath);
     if (currentCsvObjectLength) {
       files.forEach(function (file) {
-        if (fs.statSync(dirPath + '/' + file).isDirectory()) {
+        let skipDir = false;
+        let isDirectory;
+        try {
+          isDirectory = fs.statSync(dirPath + '/' + file).isDirectory();
+        } catch (error) {
+          log.warn(`Skipping - ${dirPath + '/' + file}`);
+          skipDir = true;
+        }
+
+        if (skipDir) return;
+        if (isDirectory) {
           getNext(dirPath + '/' + file);
         } else if (csvObject[file]) {
           foundFiles.push({ dir: path.join(dirPath, file), name: file });
