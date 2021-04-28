@@ -17,7 +17,7 @@ function init() {
       '.env',
       `CSV= C:\\Users\\User\\Desktop\\MOCK_DATA.csv
 SEARCH_ROOT= C:\\Users\\User\\Desktop\\many_files_inside\\
-OUTPUT= C:\\Users\\Timmy\\Desktop\\files\\`,
+OUTPUT= C:\\Users\\User\\Desktop\\files\\`,
       'utf8',
     );
     return false;
