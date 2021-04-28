@@ -5,7 +5,7 @@ const path = require('path');
 const csv = require('csv-parser');
 const copyFilePromise = util.promisify(fs.copyFile);
 
-let csvFileDir, searchRoot, output;
+let csvFileDir, searchRoot, output, devMode;
 
 const log = require('simple-node-logger').createSimpleLogger('output.log');
 
@@ -17,7 +17,8 @@ function init() {
       '.env',
       `CSV= C:\\Users\\User\\Desktop\\MOCK_DATA.csv
 SEARCH_ROOT= C:\\Users\\User\\Desktop\\many_files_inside\\
-OUTPUT= C:\\Users\\User\\Desktop\\files\\`,
+OUTPUT= C:\\Users\\User\\Desktop\\files\\
+DEV= true`,
       'utf8',
     );
     return false;
@@ -27,6 +28,7 @@ OUTPUT= C:\\Users\\User\\Desktop\\files\\`,
   csvFileDir = process.env.CSV;
   searchRoot = process.env.SEARCH_ROOT;
   output = process.env.OUTPUT;
+  devMode = process.env.DEV;
 
   if (csvFileDir && !fs.existsSync(csvFileDir)) {
     log.error('CSV not found, make sure .env has the proper path');
@@ -62,7 +64,16 @@ function getFilesFromSearch(csvObject) {
   let currentCsvObjectLength = csvObjectLength;
 
   function getNext(dirPath) {
-    const files = fs.readdirSync(dirPath);
+    let skipDir = false;
+    let files;
+    try {
+      files = fs.readdirSync(dirPath);
+    } catch (error) {
+      skipDir = true;
+      if (devMode) log.warn(`Skipping - ${dirPath}`);
+    }
+    if (skipDir) return;
+
     if (currentCsvObjectLength) {
       files.forEach(function (file) {
         let skipDir = false;
@@ -71,6 +82,7 @@ function getFilesFromSearch(csvObject) {
           isDirectory = fs.statSync(dirPath + '/' + file).isDirectory();
         } catch (error) {
           skipDir = true;
+          if (devMode) log.warn(`Skipping - ${dirPath + '/' + file}`);
         }
 
         if (skipDir) return;
