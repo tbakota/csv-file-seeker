@@ -1,0 +1,23 @@
+{
+  "name": "csv-file-seeker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": "bin.js",
+  "scripts": {
+    "start": "node index",
+    "start bin": "node bin.js",
+    "build": "pkg -t node14-win-x64 ."
+  },
+  "author": "Tino Bakota",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "dotenv": "^8.2.0",
+    "fs-extra": "^9.0.1",
+    "simple-node-logger": "^18.12.24"
+  },
+  "pkg": {
+    "outputPath": "dist"
+  }
+}
