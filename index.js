@@ -70,7 +70,6 @@ function getFilesFromSearch(csvObject) {
         try {
           isDirectory = fs.statSync(dirPath + '/' + file).isDirectory();
         } catch (error) {
-          log.warn(`Skipping - ${dirPath + '/' + file}`);
           skipDir = true;
         }
 
