@@ -16,8 +16,8 @@ function init() {
     fs.writeFileSync(
       '.env',
       `CSV= C:\\Users\\User\\Desktop\\MOCK_DATA.csv
-SEARCH_ROOT= C:\\Users\\User\\Desktop\\many_files_inside\\
-OUTPUT= C:\\Users\\User\\Desktop\\files\\
+SEARCH_ROOT= C:\\Users\\User\\Desktop\\many_files_inside
+OUTPUT= C:\\Users\\User\\Desktop\\files
 DEV= true`,
       'utf8',
     );
@@ -66,12 +66,14 @@ function getFilesFromSearch(csvObject) {
   function getNext(dirPath) {
     let skipDir = false;
     let files;
+    console.log(path.join(dirPath));
     try {
       files = fs.readdirSync(dirPath);
     } catch (error) {
       skipDir = true;
       if (devMode) log.warn(`Skipping - ${dirPath}`);
     }
+    if (path.join(dirPath) === path.join(output)) skipDir = true;
     if (skipDir) return;
 
     if (currentCsvObjectLength) {
@@ -89,33 +91,26 @@ function getFilesFromSearch(csvObject) {
         if (isDirectory) {
           getNext(dirPath + '/' + file);
         } else if (csvObject[file]) {
-          foundFiles.push({ dir: path.join(dirPath, file), name: file });
+          const foundFile = { dir: path.join(dirPath, file), name: file };
+          console.log(foundFile.dir, path.join(output, foundFile.name));
+          try {
+            fs.copySync(foundFile.dir, path.join(output, foundFile.name));
+            foundFiles.push(foundFile);
+            delete csvObject[file];
+            currentCsvObjectLength--;
 
-          delete csvObject[file];
-          currentCsvObjectLength--;
-
-          log.info(
-            `(${
-              foundFiles.length
-            }/${csvObjectLength}) - "${file}". Dir - "${path.join(
-              dirPath,
-              file,
-            )}"`,
-          );
+            log.info(
+              `(${foundFiles.length}/${csvObjectLength}) - "${foundFile.name}". Dir - "${foundFile.dir}"`,
+            );
+          } catch (err) {
+            log.error(`Copy failed - ${foundFile.name} - ${foundFile.dir}`);
+          }
         }
       });
     }
   }
   getNext(searchRoot);
   return { foundFiles, csvObjectLength, currentCsvObjectLength };
-}
-
-function copyFiles(foundFiles) {
-  return Promise.all(
-    foundFiles.map((f) => {
-      return copyFilePromise(f.dir, path.join(output, f.name));
-    }),
-  );
 }
 
 module.exports = async () => {
@@ -130,19 +125,11 @@ module.exports = async () => {
   } = getFilesFromSearch(csvObject);
   log.info(`Search end...`);
 
-  log.info(`Copy start...`);
-  copyFiles(foundFiles)
-    .then(() => {
-      log.info(`Copy end...`);
-      if (currentCsvObjectLength)
-        log.warn(
-          `Not found (${currentCsvObjectLength}) - "${Object.keys(
-            csvObject,
-          ).join('", "')}"`,
-        );
-      log.info(`FINISH - ${foundFiles.length}/${csvObjectLength}`);
-    })
-    .catch((err) => {
-      log.error(err);
-    });
+  if (currentCsvObjectLength)
+    log.warn(
+      `Not found (${currentCsvObjectLength}) - "${Object.keys(csvObject).join(
+        '", "',
+      )}"`,
+    );
+  log.info(`FINISH - ${foundFiles.length}/${csvObjectLength}`);
 };
