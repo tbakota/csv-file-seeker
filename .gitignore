@@ -29,3 +29,6 @@ nodemon.json
 /dist
 output.log
 .env
+
+# Dev test files
+/test
