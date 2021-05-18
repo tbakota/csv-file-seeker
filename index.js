@@ -1,9 +1,7 @@
 require('dotenv').config();
-const util = require('util');
 const fs = require('fs-extra');
 const path = require('path');
 const csv = require('csv-parser');
-const copyFilePromise = util.promisify(fs.copyFile);
 
 let csvFileDir, searchRoot, output, devMode;
 
@@ -94,7 +92,6 @@ function getFilesFromSearch(csvSet) {
           getNext(dirPath + '/' + file);
         } else if (csvSet.has(fileTrimmed)) {
           const foundFile = { dir: path.join(dirPath, file), name: file };
-          console.log(foundFile.dir, path.join(output, foundFile.name));
           try {
             fs.copySync(foundFile.dir, path.join(output, foundFile.name));
             foundFiles.push(foundFile);
